@@ -118,7 +118,7 @@ def build_prompt(chats: list[tuple[Chat, str]], relationship_type: RelationshipT
 
 
 @log_errors
-def score_all_components(
+def score_all_components_anthropic(
     chats: list[tuple[Chat, str]],
     relationship_type: RelationshipType,
     model_name: str | None = None,

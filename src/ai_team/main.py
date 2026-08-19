@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 
-from ai_team.client import score_all_components
+from ai_team.client_anthropic import score_all_components_anthropic
 from ai_team.schema import AnalysisRequest, AnalysisResponse, Chat
 
 app = FastAPI()
@@ -26,7 +26,7 @@ def analyze_prqc(request: AnalysisRequest) -> AnalysisResponse:
         raise HTTPException(status_code=400, detail='발화자 구분에 실패했습니다.')
 
     try:
-        result = score_all_components(
+        result = score_all_components_anthropic(
             chats=classified_chats,
             relationship_type=request.relationship_type,
         )
