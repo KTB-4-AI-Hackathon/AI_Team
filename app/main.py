@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
@@ -13,6 +14,8 @@ from app.pipeline.scoring import score_relationship
 from app.schemas import AnalysisResponse, ErrorDetail, ErrorResponse
 
 load_dotenv()
+
+logger = logging.getLogger("ai_server")
 
 app = FastAPI()
 
@@ -76,6 +79,7 @@ def analyze(
     try:
         score_result = score_relationship(messages, llm_client)
     except Exception:
+        logger.exception("scoring failed for analysisId=%s", analysisId)
         return _error_response(
             request, 503, "AI_PROVIDER_UNAVAILABLE", "일시적으로 분석 모델을 호출할 수 없습니다.", True
         )
