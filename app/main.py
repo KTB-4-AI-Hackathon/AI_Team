@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
@@ -10,6 +11,8 @@ from app.pipeline.llm_client import create_gemini_client
 from app.pipeline.response_adapter import to_analysis_response
 from app.pipeline.scoring import score_relationship
 from app.schemas import AnalysisResponse, ErrorDetail, ErrorResponse
+
+load_dotenv()
 
 app = FastAPI()
 
