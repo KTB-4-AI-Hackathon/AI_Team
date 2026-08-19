@@ -69,7 +69,7 @@ COMPONENT_DEFINITIONS: dict[str, str] = {
 
 # 구성요소별 few-shot 예시 (위험/안전 대화 쌍).
 # TODO: COMPONENT_DEFINITIONS의 매핑 작업이 끝난 뒤 구성요소별로 채울 것.
-# 현재는 빈 리스트라 few-shot 없이 정의문만으로 채점을 시도하는 상태.
+#       현재는 빈 리스트라 few-shot 없이 정의문만으로 채점을 시도하는 상태.
 COMPONENT_FEW_SHOT_EXAMPLES: dict[str, list[dict]] = {
     'satisfaction': [],
     'commitment': [],
@@ -119,11 +119,12 @@ def build_prompt(chats: list[tuple[Chat, str]], relationship_type: RelationshipT
 def score_all_components(
     chats: list[tuple[Chat, str]],
     relationship_type: RelationshipType,
+    model_name: str | None = None,
 ) -> AnalysisResponse:
     """API를 한 번만 호출해 6개 구성요소를 동시에 채점한다."""
 
     client = get_client()
-    model_name = load_model_name()
+    model_name = model_name or load_model_name()
     prompt = build_prompt(chats, relationship_type)
 
     tool_schema = AnalysisResponse.model_json_schema()
