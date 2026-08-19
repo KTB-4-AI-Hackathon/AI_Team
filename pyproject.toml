@@ -8,7 +8,9 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "fastapi>=0.141.1",
     "pydantic>=2.13.4",
+    "uvicorn>=0.52.4",
 ]
 
 [project.scripts]
@@ -17,3 +19,11 @@ ai-team = "ai_team:main"
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.taskipy.tasks]
+run-main = "uvicorn ai_team.main:app --reload"
+
+[dependency-groups]
+dev = [
+    "taskipy>=1.14.1",
+]
