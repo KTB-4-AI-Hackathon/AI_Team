@@ -9,7 +9,7 @@ from ai_team.schema import AnalysisResponse, Chat, RelationshipType
 
 load_dotenv()
 
-logger = logging.getLogger('ai_team.client')
+logger = logging.getLogger('ai_team.client_anthropic')
 
 MAX_RETRY_COUNT = 3
 

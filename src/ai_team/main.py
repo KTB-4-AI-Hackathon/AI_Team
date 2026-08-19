@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 
-from ai_team.client_anthropic import score_all_components_anthropic
+from ai_team.client_gemini import score_all_components_gemini
 from ai_team.schema import AnalysisRequest, AnalysisResponse, Chat
 
 app = FastAPI()
@@ -26,9 +26,10 @@ def analyze_prqc(request: AnalysisRequest) -> AnalysisResponse:
         raise HTTPException(status_code=400, detail='발화자 구분에 실패했습니다.')
 
     try:
-        result = score_all_components_anthropic(
+        result = score_all_components_gemini(
             chats=classified_chats,
             relationship_type=request.relationship_type,
+            model_name='gemini-3.5-flash-lite',
         )
     except Exception:
         raise HTTPException(status_code=502, detail='채점 처리에 실패했습니다.')

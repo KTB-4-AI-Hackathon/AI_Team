@@ -4,7 +4,7 @@ import os
 from google import genai
 from google.genai import types
 
-from ai_team.client import MAX_RETRY_COUNT, build_prompt, log_errors
+from ai_team.client_anthropic import MAX_RETRY_COUNT, build_prompt, log_errors
 from ai_team.schema import AnalysisResponse, Chat, RelationshipType
 
 logger = logging.getLogger('ai_team.client_gemini')
