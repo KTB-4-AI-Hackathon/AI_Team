@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from app.pipeline.scoring import build_prqc_prompt, parse_prqc_response
+from app.pipeline.scoring import build_prqc_prompt, parse_prqc_response, score_relationship
 from app.schemas import Message
 
 _TS = datetime(2024, 1, 1, 10, 23)
@@ -76,3 +76,40 @@ def test_strips_markdown_code_fence_before_parsing():
     result = parse_prqc_response(raw_output)
 
     assert result.scores["Satisfaction"] == 6
+
+
+class _FakeLLMClient:
+    def __init__(self, response_text: str):
+        self._response_text = response_text
+
+    def invoke(self, langchain_messages):
+        class _Response:
+            content = self._response_text
+
+        return _Response()
+
+
+def test_score_relationship_orchestrates_prompt_build_and_response_parse():
+    messages = [
+        Message(speaker="나", timestamp=_TS, text="안녕"),
+        Message(speaker="상대방", timestamp=_TS, text="어 오랜만이야"),
+    ]
+    fake_client = _FakeLLMClient(
+        json.dumps(
+            {
+                "Satisfaction": 6,
+                "Commitment": 3,
+                "Intimacy": 6,
+                "Trust": 6,
+                "Passion": 6,
+                "Love": 6,
+                "evidence": {"Commitment": "선톡이 한쪽으로 쏠림"},
+            }
+        )
+    )
+
+    result = score_relationship(messages, fake_client)
+
+    assert result.scores["Satisfaction"] == 6
+    assert result.risk_components == ["Commitment"]
+    assert result.evidence["Commitment"] == "선톡이 한쪽으로 쏠림"

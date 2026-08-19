@@ -1,5 +1,6 @@
 import json
 
+from app.pipeline.llm_client import invoke_llm
 from app.schemas import Message, ScoreResult
 
 PRQC_COMPONENTS = [
@@ -51,3 +52,9 @@ def _strip_code_fence(text: str) -> str:
         text = text.removeprefix("```json").removeprefix("```")
         text = text.removesuffix("```")
     return text.strip()
+
+
+def score_relationship(messages: list[Message], llm_client) -> ScoreResult:
+    prompt = build_prqc_prompt(messages)
+    raw_output = invoke_llm(llm_client, prompt)
+    return parse_prqc_response(raw_output)
