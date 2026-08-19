@@ -23,6 +23,16 @@ def test_prompt_includes_conversation_and_all_six_components():
     assert "상대방: 어 오랜만이야" in prompt[1]["content"]
 
 
+def test_prompt_includes_pronoun_guidance_and_a_worked_example():
+    messages = [Message(speaker="나", timestamp=_TS, text="안녕")]
+
+    prompt = build_prqc_prompt(messages)
+    system_message = prompt[0]["content"]
+
+    assert "나'와 '상대방'을 혼동하지" in system_message
+    assert "[예시]" in system_message
+
+
 def test_parses_clean_json_response_into_score_result():
     raw_output = json.dumps(
         {
