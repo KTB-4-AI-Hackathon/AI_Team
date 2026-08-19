@@ -27,7 +27,7 @@ def analyze_prqc(request: AnalysisRequest) -> AnalysisResponse:
 
     try:
         result = score_all_components(
-            chats=[chat for chat, _ in classified_chats],
+            chats=classified_chats,
             relationship_type=request.relationship_type,
         )
     except Exception:

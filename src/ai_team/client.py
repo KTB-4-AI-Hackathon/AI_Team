@@ -81,7 +81,7 @@ COMPONENT_FEW_SHOT_EXAMPLES: dict[str, list[dict]] = {
 
 
 @log_errors
-def build_prompt(chats: list[Chat], relationship_type: RelationshipType) -> str:
+def build_prompt(chats: list[tuple[Chat, str]], relationship_type: RelationshipType) -> str:
     """6개 구성요소를 한 번의 호출로 모두 채점하기 위한 단일 프롬프트를 조립한다."""
 
     definitions_block = '\n'.join(
@@ -93,7 +93,10 @@ def build_prompt(chats: list[Chat], relationship_type: RelationshipType) -> str:
     #     f'- {name}: {examples}' for name, examples in COMPONENT_FEW_SHOT_EXAMPLES.items()
     # )
 
-    chats_block = '\n'.join(f'[{chat.date}] {chat.name}: {chat.message}' for chat in chats)
+    # speaker('user' | 'person')를 라벨로 사용해, LLM이 원본 닉네임으로 본인/상대방을 추측하지 않도록 함
+    chats_block = '\n'.join(
+        f'[{chat.date}] {speaker}: {chat.message}' for chat, speaker in chats
+    )
 
     prompt = (
         f'당신은 두 사람의 대화 로그를 읽고 관계의 PRQC 6개 구성요소를 한 번에 채점하는 평가자입니다.\n'
@@ -104,7 +107,7 @@ def build_prompt(chats: list[Chat], relationship_type: RelationshipType) -> str:
         # f'\n'
         # f'참고 예시:\n{few_shot_block}\n'
         f'\n'
-        f'대화 로그:\n{chats_block}\n'
+        f'대화 로그 (user: 분석을 요청한 본인, person: 분석 대상 상대방):\n{chats_block}\n'
         f'\n'
         f'위 대화를 근거로 satisfaction, commitment, intimacy, trust, passion, love '
         f'6개 구성요소 각각을 1~7점으로 채점하고, 구성요소별 판단 근거를 요약된 문장으로 제시하세요.'
@@ -114,7 +117,7 @@ def build_prompt(chats: list[Chat], relationship_type: RelationshipType) -> str:
 
 @log_errors
 def score_all_components(
-    chats: list[Chat],
+    chats: list[tuple[Chat, str]],
     relationship_type: RelationshipType,
 ) -> AnalysisResponse:
     """API를 한 번만 호출해 6개 구성요소를 동시에 채점한다."""
