@@ -23,7 +23,7 @@ requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.taskipy.tasks]
-run-main = "uvicorn ai_team.main:app --reload"
+main-server = "uvicorn ai_team.main:app --reload"
 
 [dependency-groups]
 dev = [
