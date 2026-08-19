@@ -24,8 +24,12 @@ class Evidence(BaseModel):
 class AnalysisResponse(BaseModel):
     analysisId: str
     modelVersion: str
+    promptVersion: str
+    processedMessageCount: int
     components: dict[str, int]
     evidences: list[Evidence]
+    warnings: list[str]
+    completedAt: datetime
 
 
 class ErrorDetail(BaseModel):

@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
@@ -13,7 +14,9 @@ from app.schemas import AnalysisResponse, ErrorDetail, ErrorResponse
 app = FastAPI()
 
 MODEL_VERSION = "prqc-2026-08-19.1"
+PROMPT_VERSION = "relationship-evidence-1.0.0"
 MIN_MESSAGE_COUNT = 2
+REQUIRED_HEADERS = ("x-request-id", "idempotency-key")
 
 
 def get_llm_client():
@@ -41,16 +44,24 @@ def analyze(
     request: Request,
     analysisId: str = Form(...),
     relationshipType: str = Form(...),
+    format: str = Form(...),
+    formatVersion: str = Form(...),
     sha256: str = Form(...),
     file: UploadFile = File(...),
     _auth: None = Depends(require_service_token),
     llm_client=Depends(get_llm_client),
 ):
+    missing_headers = [h for h in REQUIRED_HEADERS if not request.headers.get(h)]
+    if missing_headers:
+        return _error_response(
+            request, 400, "INVALID_REQUEST", f"필수 헤더 누락: {', '.join(missing_headers)}", False
+        )
+
     data = file.file.read()
 
     if not verify_sha256(data, sha256):
         return _error_response(
-            request, 400, "FILE_INTEGRITY_MISMATCH", "파일 무결성 검증에 실패했습니다.", False
+            request, 400, "INVALID_REQUEST", "파일 무결성 검증에 실패했습니다.", False
         )
 
     messages = parse_ndjson(decompress_gzip(data))
@@ -66,4 +77,11 @@ def analyze(
             request, 503, "AI_PROVIDER_UNAVAILABLE", "일시적으로 분석 모델을 호출할 수 없습니다.", True
         )
 
-    return to_analysis_response(score_result, analysis_id=analysisId, model_version=MODEL_VERSION)
+    return to_analysis_response(
+        score_result,
+        analysis_id=analysisId,
+        model_version=MODEL_VERSION,
+        prompt_version=PROMPT_VERSION,
+        processed_message_count=len(messages),
+        completed_at=datetime.now(timezone.utc),
+    )
