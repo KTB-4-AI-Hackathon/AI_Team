@@ -21,7 +21,7 @@ def load_google_api_key() -> str:
 
 @log_errors
 def load_gemini_model_name() -> str:
-    return os.environ.get('AI_TEAM_GEMINI_MODEL_NAME', 'gemini-3.1-pro')
+    return os.environ.get('AI_TEAM_MODEL_NAME', 'gemini-3.5-flash-lite')
 
 
 @log_errors
