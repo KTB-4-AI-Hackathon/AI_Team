@@ -41,7 +41,8 @@ def test_bypasses_llm_and_returns_crisis_response_when_signal_detected():
         llm_client=fake_client,
     )
 
-    assert "1393" in reply
+    assert reply != "이 응답은 쓰이면 안 됨"
+    assert "1393" not in reply
 
 
 def test_calls_llm_for_ordinary_message():

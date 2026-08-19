@@ -1,4 +1,4 @@
-from app.pipeline.llm_client import invoke_llm
+from app.pipeline.llm_client import invoke_llm, stream_llm
 from app.schemas import ScoreResult
 
 _CRISIS_KEYWORDS = [
@@ -23,11 +23,17 @@ def should_recommend_professional_help(risk_components: list[str]) -> bool:
 
 def build_crisis_response() -> str:
     return (
-        "지금 많이 힘드신 것 같아요. 저는 이런 순간에 충분한 도움을 드리기 어려운 AI예요. "
-        "혼자 견디지 마시고 전문가와 이야기 나눠보시면 좋겠습니다.\n\n"
-        "자살예방상담전화 1393 (24시간, 국번 없이)\n"
-        "지금 이 순간 안전이 가장 중요합니다."
+        "지금 많이 힘드신 것 같아요. 저는 이런 순간에 충분한 도움을 드리기 어려운 AI라, "
+        "혼자 견디지 마시고 전문가와 이야기 나눠보셨으면 해요."
     )
+
+
+def classify_safety_signal(user_message: str, risk_components: list[str]) -> str | None:
+    if detect_crisis_signal(user_message):
+        return "CRISIS_SUPPORT"
+    if should_recommend_professional_help(risk_components):
+        return "SUPPORT_RECOMMENDATION"
+    return None
 
 
 _SYSTEM_PROMPT_TEMPLATE = """당신은 관계 고민을 들어주는 상담 도우미입니다. 반드시 아래 4단계 응답 구조를 따르세요.
@@ -85,3 +91,23 @@ def consult(
         relationship_type=relationship_type,
     )
     return invoke_llm(llm_client, prompt)
+
+
+def stream_consult(
+    history: list[dict[str, str]],
+    user_message: str,
+    score_result: ScoreResult,
+    relationship_type: str,
+    llm_client,
+):
+    if detect_crisis_signal(user_message):
+        yield build_crisis_response()
+        return
+
+    prompt = build_consultation_prompt(
+        history=history,
+        user_message=user_message,
+        score_result=score_result,
+        relationship_type=relationship_type,
+    )
+    yield from stream_llm(llm_client, prompt)
