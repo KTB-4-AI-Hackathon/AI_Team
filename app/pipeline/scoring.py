@@ -1,4 +1,6 @@
-from app.schemas import Message
+import json
+
+from app.schemas import Message, ScoreResult
 
 PRQC_COMPONENTS = [
     "Satisfaction",
@@ -30,3 +32,22 @@ def build_prqc_prompt(messages: list[Message]) -> list[dict[str, str]]:
         {"role": "system", "content": _SYSTEM_PROMPT},
         {"role": "user", "content": conversation},
     ]
+
+
+_RISK_CUTOFF = 4
+
+
+def parse_prqc_response(raw_output: str) -> ScoreResult:
+    data = json.loads(_strip_code_fence(raw_output))
+    scores = {c: data[c] for c in PRQC_COMPONENTS}
+    risk_components = [c for c, s in scores.items() if s < _RISK_CUTOFF]
+    evidence = data.get("evidence", {})
+    return ScoreResult(scores=scores, risk_components=risk_components, evidence=evidence)
+
+
+def _strip_code_fence(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.removeprefix("```json").removeprefix("```")
+        text = text.removesuffix("```")
+    return text.strip()
