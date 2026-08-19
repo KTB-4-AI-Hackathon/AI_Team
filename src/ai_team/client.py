@@ -69,7 +69,7 @@ COMPONENT_DEFINITIONS: dict[str, str] = {
 
 # 구성요소별 few-shot 예시 (위험/안전 대화 쌍).
 # TODO: COMPONENT_DEFINITIONS의 매핑 작업이 끝난 뒤 구성요소별로 채울 것.
-#       현재는 빈 리스트라 few-shot 없이 정의문만으로 채점을 시도하는 상태.
+# 현재는 빈 리스트라 few-shot 없이 정의문만으로 채점을 시도하는 상태.
 COMPONENT_FEW_SHOT_EXAMPLES: dict[str, list[dict]] = {
     'satisfaction': [],
     'commitment': [],
@@ -99,7 +99,7 @@ def build_prompt(chats: list[tuple[Chat, str]], relationship_type: RelationshipT
     )
 
     prompt = (
-        f'당신은 두 사람의 대화 로그를 읽고 관계의 PRQC 6개 구성요소를 한 번에 채점하는 평가자입니다.\n'
+        f'당신은 두 사람의 대화 로그를 읽고 관계의 PRQC(Perceived Relationship Quality Components Inventory) 6개 구성요소를 한 번에 채점하는 평가자입니다.\n'
         f'\n'
         f'구성요소 정의:\n{definitions_block}\n'
         f'\n'
