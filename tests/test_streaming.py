@@ -1,4 +1,7 @@
+from datetime import datetime, timezone
+
 from app.pipeline.llm_client import stream_llm
+from app.schemas import RelationshipContext
 
 
 class _FakeStreamingClient:
@@ -9,6 +12,23 @@ class _FakeStreamingClient:
 
         for text in ["안녕", "하세요", ", 반가워요"]:
             yield _Chunk(text)
+
+
+def _relationship_context() -> RelationshipContext:
+    return RelationshipContext(
+        relationshipType="FRIEND",
+        analyzedAt=datetime(2026, 8, 19, tzinfo=timezone.utc),
+        overallScore=90,
+        components={
+            "satisfaction": 90,
+            "commitment": 90,
+            "intimacy": 90,
+            "trust": 90,
+            "passion": 90,
+            "love": 90,
+        },
+        evidences=[],
+    )
 
 
 def test_yields_text_chunks_as_they_stream_in():
@@ -22,20 +42,12 @@ def test_yields_text_chunks_as_they_stream_in():
 
 def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
     from app.pipeline.consultation import stream_consult
-    from app.schemas import ScoreResult
-
-    score_result = ScoreResult(
-        scores={"Satisfaction": 6, "Commitment": 6, "Intimacy": 6, "Trust": 6, "Passion": 6, "Love": 6},
-        risk_components=[],
-        evidence={},
-    )
 
     chunks = list(
         stream_consult(
             history=[],
             user_message="죽고 싶다는 생각이 들어",
-            score_result=score_result,
-            relationship_type="FRIEND",
+            relationship_context=_relationship_context(),
             llm_client=_FakeStreamingClient(),
         )
     )
@@ -47,20 +59,12 @@ def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
 
 def test_stream_consult_yields_llm_chunks_for_ordinary_message():
     from app.pipeline.consultation import stream_consult
-    from app.schemas import ScoreResult
-
-    score_result = ScoreResult(
-        scores={"Satisfaction": 6, "Commitment": 6, "Intimacy": 6, "Trust": 6, "Passion": 6, "Love": 6},
-        risk_components=[],
-        evidence={},
-    )
 
     chunks = list(
         stream_consult(
             history=[],
             user_message="요즘 연락이 좀 뜸해요",
-            score_result=score_result,
-            relationship_type="FRIEND",
+            relationship_context=_relationship_context(),
             llm_client=_FakeStreamingClient(),
         )
     )

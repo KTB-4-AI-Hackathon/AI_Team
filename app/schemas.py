@@ -15,10 +15,27 @@ class ScoreResult(BaseModel):
     evidence: dict[str, str]
 
 
+class Metric(BaseModel):
+    name: str
+    currentValue: float
+    previousValue: float
+    unit: str
+    period: str
+
+
 class Evidence(BaseModel):
     component: str
     score: int
     summary: str
+    metric: Metric | None = None
+
+
+class RelationshipContext(BaseModel):
+    relationshipType: str
+    analyzedAt: datetime
+    overallScore: int
+    components: dict[str, int]
+    evidences: list[Evidence]
 
 
 class AnalysisResponse(BaseModel):
@@ -29,6 +46,25 @@ class AnalysisResponse(BaseModel):
     components: dict[str, int]
     evidences: list[Evidence]
     warnings: list[str]
+    completedAt: datetime
+
+
+class ConsultationMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ConsultationRequest(BaseModel):
+    consultationId: str
+    userMessage: str
+    history: list[ConsultationMessage] = []
+    relationshipContext: RelationshipContext
+
+
+class ConsultationResponse(BaseModel):
+    consultationId: str
+    reply: str
+    safetyType: str | None
     completedAt: datetime
 
 

@@ -7,11 +7,22 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
+from app.pipeline.consultation import (
+    classify_safety_signal,
+    consult,
+    risk_components_below_cutoff,
+)
 from app.pipeline.ingest import decompress_gzip, parse_ndjson, verify_sha256
 from app.pipeline.llm_client import create_gemini_client
 from app.pipeline.response_adapter import to_analysis_response
 from app.pipeline.scoring import score_relationship
-from app.schemas import AnalysisResponse, ErrorDetail, ErrorResponse
+from app.schemas import (
+    AnalysisResponse,
+    ConsultationRequest,
+    ConsultationResponse,
+    ErrorDetail,
+    ErrorResponse,
+)
 
 load_dotenv()
 
@@ -91,4 +102,42 @@ def analyze(
         prompt_version=PROMPT_VERSION,
         processed_message_count=len(messages),
         completed_at=datetime.now(timezone.utc),
+    )
+
+
+@app.post("/internal/v1/consultations/messages", response_model=ConsultationResponse)
+def consultation_message(
+    request: Request,
+    body: ConsultationRequest,
+    _auth: None = Depends(require_service_token),
+    llm_client=Depends(get_llm_client),
+):
+    missing_headers = [h for h in REQUIRED_HEADERS if not request.headers.get(h)]
+    if missing_headers:
+        return _error_response(
+            request, 400, "INVALID_REQUEST", f"필수 헤더 누락: {', '.join(missing_headers)}", False
+        )
+
+    history = [m.model_dump() for m in body.history]
+    risk_components = risk_components_below_cutoff(body.relationshipContext.components)
+    safety_type = classify_safety_signal(body.userMessage, risk_components)
+
+    try:
+        reply = consult(
+            history=history,
+            user_message=body.userMessage,
+            relationship_context=body.relationshipContext,
+            llm_client=llm_client,
+        )
+    except Exception:
+        logger.exception("consultation failed for consultationId=%s", body.consultationId)
+        return _error_response(
+            request, 503, "AI_PROVIDER_UNAVAILABLE", "일시적으로 상담 모델을 호출할 수 없습니다.", True
+        )
+
+    return ConsultationResponse(
+        consultationId=body.consultationId,
+        reply=reply,
+        safetyType=safety_type,
+        completedAt=datetime.now(timezone.utc),
     )

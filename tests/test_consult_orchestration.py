@@ -1,7 +1,7 @@
-import json
+from datetime import datetime, timezone
 
 from app.pipeline.consultation import consult
-from app.schemas import ScoreResult
+from app.schemas import Evidence, RelationshipContext
 
 
 class _FakeLLMClient:
@@ -15,18 +15,22 @@ class _FakeLLMClient:
         return _Response()
 
 
-def _score_result() -> ScoreResult:
-    return ScoreResult(
-        scores={
-            "Satisfaction": 6,
-            "Commitment": 2,
-            "Intimacy": 6,
-            "Trust": 6,
-            "Passion": 6,
-            "Love": 6,
+def _relationship_context() -> RelationshipContext:
+    return RelationshipContext(
+        relationshipType="FRIEND",
+        analyzedAt=datetime(2026, 8, 19, tzinfo=timezone.utc),
+        overallScore=58,
+        components={
+            "satisfaction": 83,
+            "commitment": 17,
+            "intimacy": 83,
+            "trust": 83,
+            "passion": 83,
+            "love": 83,
         },
-        risk_components=["Commitment"],
-        evidence={"Commitment": "선톡이 한쪽으로 쏠림"},
+        evidences=[
+            Evidence(component="commitment", score=17, summary="선톡이 한쪽으로 쏠림"),
+        ],
     )
 
 
@@ -36,8 +40,7 @@ def test_bypasses_llm_and_returns_crisis_response_when_signal_detected():
     reply = consult(
         history=[],
         user_message="요즘 너무 힘들어서 죽고 싶다는 생각이 들어",
-        score_result=_score_result(),
-        relationship_type="FRIEND",
+        relationship_context=_relationship_context(),
         llm_client=fake_client,
     )
 
@@ -51,8 +54,7 @@ def test_calls_llm_for_ordinary_message():
     reply = consult(
         history=[],
         user_message="답장이 너무 늦어서 서운해요",
-        score_result=_score_result(),
-        relationship_type="FRIEND",
+        relationship_context=_relationship_context(),
         llm_client=fake_client,
     )
 

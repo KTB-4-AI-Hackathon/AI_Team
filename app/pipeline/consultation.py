@@ -1,5 +1,5 @@
 from app.pipeline.llm_client import invoke_llm, stream_llm
-from app.schemas import ScoreResult
+from app.schemas import RelationshipContext
 
 _CRISIS_KEYWORDS = [
     "죽고 싶",
@@ -36,7 +36,9 @@ def classify_safety_signal(user_message: str, risk_components: list[str]) -> str
     return None
 
 
-_SYSTEM_PROMPT_TEMPLATE = """당신은 관계 고민을 들어주는 상담 도우미입니다. 반드시 아래 4단계 응답 구조를 따르세요.
+_SYSTEM_PROMPT_TEMPLATE = """당신은 관계 고민을 들어주는 상담 도우미입니다. 반드시 아래 4단계 응답 구조를 따르되,
+이 단계 구분은 답변을 구성하는 내부 가이드라인일 뿐입니다. "1. 한계 인정" 같은 번호나
+라벨을 답변에 그대로 쓰지 마세요. 자연스럽게 이어지는 대화체 문장으로만 답하세요.
 
 1. 한계 인정: 확정적으로 진단하지 마세요 ("가스라이팅이 맞다" 같은 단정 금지). "제가 확정할 수 있는 부분은 아니에요" 같은 표현으로 먼저 선을 그으세요.
 2. 관찰된 사실 진술: 아래 분석 데이터에 근거해, 판단이 아닌 관찰된 패턴만 언급하세요.
@@ -44,27 +46,36 @@ _SYSTEM_PROMPT_TEMPLATE = """당신은 관계 고민을 들어주는 상담 도�
 4. 전문 상담 연계: 아래 "전문 상담 권유 필요" 표시가 있으면, 자연스럽게 전문 상담 리소스 이용을 권유하세요.
 
 [관계 유형]: {relationship_type}
+[종합 관계온도(0~100, 참고용)]: {overall_score}
 [위험 신호 구성요소와 근거]:
 {risk_evidence}
 [전문 상담 권유 필요]: {needs_escalation}
 """
 
+_RISK_CUTOFF_100 = 50
+
+
+def risk_components_below_cutoff(components: dict[str, int]) -> list[str]:
+    return [component for component, score in components.items() if score < _RISK_CUTOFF_100]
+
 
 def build_consultation_prompt(
     history: list[dict[str, str]],
     user_message: str,
-    score_result: ScoreResult,
-    relationship_type: str,
+    relationship_context: RelationshipContext,
 ) -> list[dict[str, str]]:
+    risk_components = risk_components_below_cutoff(relationship_context.components)
+    evidence_by_component = {e.component: e.summary for e in relationship_context.evidences}
     risk_evidence = "\n".join(
-        f"- {component}: {score_result.evidence.get(component, '근거 없음')}"
-        for component in score_result.risk_components
+        f"- {component}: {evidence_by_component.get(component, '근거 없음')}"
+        for component in risk_components
     ) or "없음"
 
     system_message = _SYSTEM_PROMPT_TEMPLATE.format(
-        relationship_type=relationship_type,
+        relationship_type=relationship_context.relationshipType,
+        overall_score=relationship_context.overallScore,
         risk_evidence=risk_evidence,
-        needs_escalation=should_recommend_professional_help(score_result.risk_components),
+        needs_escalation=should_recommend_professional_help(risk_components),
     )
 
     return (
@@ -77,8 +88,7 @@ def build_consultation_prompt(
 def consult(
     history: list[dict[str, str]],
     user_message: str,
-    score_result: ScoreResult,
-    relationship_type: str,
+    relationship_context: RelationshipContext,
     llm_client,
 ) -> str:
     if detect_crisis_signal(user_message):
@@ -87,8 +97,7 @@ def consult(
     prompt = build_consultation_prompt(
         history=history,
         user_message=user_message,
-        score_result=score_result,
-        relationship_type=relationship_type,
+        relationship_context=relationship_context,
     )
     return invoke_llm(llm_client, prompt)
 
@@ -96,8 +105,7 @@ def consult(
 def stream_consult(
     history: list[dict[str, str]],
     user_message: str,
-    score_result: ScoreResult,
-    relationship_type: str,
+    relationship_context: RelationshipContext,
     llm_client,
 ):
     if detect_crisis_signal(user_message):
@@ -107,7 +115,6 @@ def stream_consult(
     prompt = build_consultation_prompt(
         history=history,
         user_message=user_message,
-        score_result=score_result,
-        relationship_type=relationship_type,
+        relationship_context=relationship_context,
     )
     yield from stream_llm(llm_client, prompt)
