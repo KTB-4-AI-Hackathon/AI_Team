@@ -1,6 +1,8 @@
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
+
+_MESSAGE_TYPES = {"system": SystemMessage, "assistant": AIMessage}
 
 
 def create_claude_client(temperature: float = 0.0) -> ChatAnthropic:
@@ -13,10 +15,7 @@ def create_gemini_client(temperature: float = 0.0) -> ChatGoogleGenerativeAI:
 
 def invoke_llm(client, prompt: list[dict[str, str]]) -> str:
     langchain_messages = [
-        SystemMessage(content=m["content"])
-        if m["role"] == "system"
-        else HumanMessage(content=m["content"])
-        for m in prompt
+        _MESSAGE_TYPES.get(m["role"], HumanMessage)(content=m["content"]) for m in prompt
     ]
     response = client.invoke(langchain_messages)
     return response.content
