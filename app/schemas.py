@@ -26,3 +26,14 @@ class AnalysisResponse(BaseModel):
     modelVersion: str
     components: dict[str, int]
     evidences: list[Evidence]
+
+
+class ErrorDetail(BaseModel):
+    code: str
+    message: str
+    retryable: bool
+    requestId: str
+
+
+class ErrorResponse(BaseModel):
+    error: ErrorDetail
