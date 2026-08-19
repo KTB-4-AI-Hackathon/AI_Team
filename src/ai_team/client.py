@@ -110,7 +110,9 @@ def build_prompt(chats: list[tuple[Chat, str]], relationship_type: RelationshipT
         f'대화 로그 (user: 분석을 요청한 본인, person: 분석 대상 상대방):\n{chats_block}\n'
         f'\n'
         f'위 대화를 근거로 satisfaction, commitment, intimacy, trust, passion, love '
-        f'6개 구성요소 각각을 1~7점으로 채점하고, 구성요소별 판단 근거를 요약된 문장으로 제시하세요.'
+        f'6개 구성요소 각각을 1~7점으로 채점하고, 구성요소별 판단 근거를 요약된 문장으로 제시하세요.\n'
+        f'각 구성요소는 반드시 {{"score": <1~7 정수>, "evidence": ["근거 문장", ...]}} 형태의 '
+        f'객체여야 하며, 점수를 숫자나 문자열 하나로만 답하지 마세요.'
     )
     return prompt
 
