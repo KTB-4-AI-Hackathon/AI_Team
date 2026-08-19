@@ -1,11 +1,12 @@
 import functools
 import logging
 import os
+from datetime import datetime
 
 import anthropic
 from dotenv import load_dotenv
 
-from ai_team.schema import AnalysisResponse, Chat, RelationshipType
+from ai_team.schema import AnalysisResponse, Chat, PrqcScores, RelationshipType
 
 load_dotenv()
 
@@ -129,7 +130,7 @@ def score_all_components_anthropic(
     model_name = model_name or load_model_name()
     prompt = build_prompt(chats, relationship_type)
 
-    tool_schema = AnalysisResponse.model_json_schema()
+    tool_schema = PrqcScores.model_json_schema()
     tool_name = 'submit_prqc_analysis'
 
     last_error: Exception | None = None
@@ -152,7 +153,8 @@ def score_all_components_anthropic(
             tool_use_block = next(
                 block for block in response.content if block.type == 'tool_use'
             )
-            return AnalysisResponse.model_validate(tool_use_block.input)
+            prqc_scores = PrqcScores.model_validate(tool_use_block.input)
+            return AnalysisResponse(prqc_scores=prqc_scores, completed_at=datetime.now())
 
         except Exception as error:
             last_error = error

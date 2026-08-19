@@ -1,11 +1,12 @@
 import logging
 import os
+from datetime import datetime
 
 from google import genai
 from google.genai import types
 
 from ai_team.client_anthropic import MAX_RETRY_COUNT, build_prompt, log_errors
-from ai_team.schema import AnalysisResponse, Chat, RelationshipType
+from ai_team.schema import AnalysisResponse, Chat, PrqcScores, RelationshipType
 
 logger = logging.getLogger('ai_team.client_gemini')
 
@@ -48,10 +49,11 @@ def score_all_components_gemini(
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type='application/json',
-                    response_schema=AnalysisResponse,
+                    response_schema=PrqcScores,
                 ),
             )
-            return AnalysisResponse.model_validate(response.parsed)
+            prqc_scores = PrqcScores.model_validate(response.parsed)
+            return AnalysisResponse(prqc_scores=prqc_scores, completed_at=datetime.now())
 
         except Exception as error:
             last_error = error
