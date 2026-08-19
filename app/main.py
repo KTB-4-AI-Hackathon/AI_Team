@@ -1,3 +1,5 @@
+import gzip
+import json
 import logging
 import os
 import uuid
@@ -6,6 +8,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from app.pipeline.consultation import (
     classify_safety_signal,
@@ -46,6 +49,19 @@ def require_service_token(request: Request) -> None:
         raise HTTPException(status_code=401, detail="invalid service token")
 
 
+_HTTP_STATUS_ERROR_CODES = {401: "AUTH_REQUIRED"}
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    code = _HTTP_STATUS_ERROR_CODES.get(exc.status_code, "HTTP_ERROR")
+    request_id = request.headers.get("x-request-id", str(uuid.uuid4()))
+    body = ErrorResponse(
+        error=ErrorDetail(code=code, message=str(exc.detail), retryable=False, requestId=request_id)
+    )
+    return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+
+
 def _error_response(
     request: Request, status_code: int, code: str, message: str, retryable: bool
 ) -> JSONResponse:
@@ -81,7 +97,13 @@ def analyze(
             request, 400, "INVALID_REQUEST", "파일 무결성 검증에 실패했습니다.", False
         )
 
-    messages = parse_ndjson(decompress_gzip(data))
+    try:
+        messages = parse_ndjson(decompress_gzip(data))
+    except (gzip.BadGzipFile, UnicodeDecodeError, json.JSONDecodeError, ValidationError):
+        return _error_response(
+            request, 422, "INVALID_CONVERSATION_DATA", "정규화 데이터 파싱에 실패했습니다.", False
+        )
+
     if len(messages) < MIN_MESSAGE_COUNT:
         return _error_response(
             request, 422, "INSUFFICIENT_MESSAGES", "분석하기에 대화가 너무 적습니다.", False

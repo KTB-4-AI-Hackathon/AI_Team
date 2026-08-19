@@ -102,3 +102,4 @@ def test_rejects_request_without_valid_bearer_token(monkeypatch):
     app.dependency_overrides.clear()
 
     assert response.status_code == 401
+    assert response.json()["error"]["code"] == "AUTH_REQUIRED"
