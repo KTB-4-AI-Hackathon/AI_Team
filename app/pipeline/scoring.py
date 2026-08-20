@@ -1,7 +1,7 @@
 import json
 
 from app.pipeline.llm_client import invoke_llm
-from app.schemas import Message, ScoreResult
+from app.schemas import AnalysisContext, Message, ScoreResult
 
 PRQC_COMPONENTS = [
     "Satisfaction",
@@ -81,7 +81,15 @@ def _strip_code_fence(text: str) -> str:
     return text.strip()
 
 
-def score_relationship(messages: list[Message], llm_client) -> ScoreResult:
+def score_relationship(
+    messages: list[Message], llm_client, analysis_context: AnalysisContext | None = None
+) -> ScoreResult:
+    """Scores the current conversation after the API has validated its analysis context.
+
+    The prompt's use of ``analysis_context`` is intentionally owned by the AI/prompt team. Keeping
+    the validated value at this boundary makes the backend-to-AI contract available without
+    changing the current scoring prompt or score calculation behavior.
+    """
     prompt = build_prqc_prompt(messages)
     raw_output = invoke_llm(llm_client, prompt)
     return parse_prqc_response(raw_output)
