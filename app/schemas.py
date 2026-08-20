@@ -50,6 +50,7 @@ class AnalysisResponse(BaseModel):
     components: dict[str, int]
     evidences: list[Evidence]
     warnings: list[AnalysisWarning]
+    selfReportComparison: str
     completedAt: datetime
 
 
