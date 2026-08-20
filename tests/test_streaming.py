@@ -11,6 +11,17 @@ class _FakeStreamingClient:
             yield _Chunk(text)
 
 
+def _prqc() -> dict[str, int]:
+    return {
+        "satisfaction": 90,
+        "commitment": 90,
+        "intimacy": 90,
+        "trust": 90,
+        "passion": 90,
+        "love": 90,
+    }
+
+
 def test_yields_text_chunks_as_they_stream_in():
     client = _FakeStreamingClient()
     prompt = [{"role": "user", "content": "안녕"}]
@@ -22,20 +33,14 @@ def test_yields_text_chunks_as_they_stream_in():
 
 def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
     from app.pipeline.consultation import stream_consult
-    from app.schemas import ScoreResult
-
-    score_result = ScoreResult(
-        scores={"Satisfaction": 6, "Commitment": 6, "Intimacy": 6, "Trust": 6, "Passion": 6, "Love": 6},
-        risk_components=[],
-        evidence={},
-    )
 
     chunks = list(
         stream_consult(
-            history=[],
+            recent_messages=[],
             user_message="죽고 싶다는 생각이 들어",
-            score_result=score_result,
-            relationship_type="FRIEND",
+            overall_score=90,
+            prqc=_prqc(),
+            evidences=[],
             llm_client=_FakeStreamingClient(),
         )
     )
@@ -47,20 +52,14 @@ def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
 
 def test_stream_consult_yields_llm_chunks_for_ordinary_message():
     from app.pipeline.consultation import stream_consult
-    from app.schemas import ScoreResult
-
-    score_result = ScoreResult(
-        scores={"Satisfaction": 6, "Commitment": 6, "Intimacy": 6, "Trust": 6, "Passion": 6, "Love": 6},
-        risk_components=[],
-        evidence={},
-    )
 
     chunks = list(
         stream_consult(
-            history=[],
+            recent_messages=[],
             user_message="요즘 연락이 좀 뜸해요",
-            score_result=score_result,
-            relationship_type="FRIEND",
+            overall_score=90,
+            prqc=_prqc(),
+            evidences=[],
             llm_client=_FakeStreamingClient(),
         )
     )

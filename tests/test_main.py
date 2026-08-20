@@ -163,6 +163,7 @@ def test_rejects_request_without_valid_bearer_token(monkeypatch):
     app.dependency_overrides.clear()
 
     assert response.status_code == 401
+    assert response.json()["error"]["code"] == "AUTH_REQUIRED"
 
 
 def test_returns_400_when_sha256_does_not_match(monkeypatch):
@@ -228,3 +229,45 @@ def test_returns_400_when_idempotency_key_header_missing(monkeypatch):
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "INVALID_REQUEST"
+
+
+def test_returns_422_when_ndjson_is_malformed(monkeypatch):
+    monkeypatch.setenv("AI_INTERNAL_SERVICE_TOKEN", "test-token")
+    app.dependency_overrides[get_llm_client] = lambda: _FakeLLMClient()
+    client = TestClient(app)
+
+    broken_payload = gzip.compress(b"{not valid json at all")
+    sha256 = hashlib.sha256(broken_payload).hexdigest()
+
+    response = client.post(
+        "/internal/v1/prqc-analyses",
+        headers=_headers(),
+        data=_form_data(sha256),
+        files={"file": ("conversation.ndjson.gz", broken_payload, "application/gzip")},
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "INVALID_CONVERSATION_DATA"
+
+
+def test_returns_422_when_gzip_is_corrupted(monkeypatch):
+    monkeypatch.setenv("AI_INTERNAL_SERVICE_TOKEN", "test-token")
+    app.dependency_overrides[get_llm_client] = lambda: _FakeLLMClient()
+    client = TestClient(app)
+
+    not_gzip = b"this is not gzip data"
+    sha256 = hashlib.sha256(not_gzip).hexdigest()
+
+    response = client.post(
+        "/internal/v1/prqc-analyses",
+        headers=_headers(),
+        data=_form_data(sha256),
+        files={"file": ("conversation.ndjson.gz", not_gzip, "application/gzip")},
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "INVALID_CONVERSATION_DATA"

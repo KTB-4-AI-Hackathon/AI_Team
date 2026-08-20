@@ -20,9 +20,22 @@ def _to_langchain_messages(prompt: list[dict[str, str]]):
 
 def invoke_llm(client, prompt: list[dict[str, str]]) -> str:
     response = client.invoke(_to_langchain_messages(prompt))
-    return response.content
+    return _content_to_text(response.content)
 
 
 def stream_llm(client, prompt: list[dict[str, str]]):
     for chunk in client.stream(_to_langchain_messages(prompt)):
-        yield chunk.content
+        yield _content_to_text(chunk.content)
+
+
+def _content_to_text(content) -> str:
+    """Normalize LangChain provider content to the string API contract."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(
+            str(item.get("text") if isinstance(item, dict) else item)
+            for item in content
+            if (item.get("text") if isinstance(item, dict) else item)
+        )
+    return str(content) if content is not None else ""
