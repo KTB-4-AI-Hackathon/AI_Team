@@ -83,6 +83,12 @@ class ConsultationHistoryMessage(StrictModel):
     content: str
 
 
+class ConsultationConversationMessage(StrictModel):
+    sender: Literal["SELF", "OTHER"]
+    sentAt: datetime
+    text: str
+
+
 class ConsultationAnswerRequest(StrictModel):
     reportId: str
     overallScore: int
@@ -90,6 +96,7 @@ class ConsultationAnswerRequest(StrictModel):
     prqc: dict[str, int]
     evidences: list[ConsultationEvidenceContext]
     recentMessages: list[ConsultationHistoryMessage]
+    conversationMessages: list[ConsultationConversationMessage] = Field(default_factory=list)
     userMessage: str
 
 

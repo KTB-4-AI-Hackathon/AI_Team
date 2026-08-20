@@ -133,12 +133,14 @@ def consultation_answers(
         raise ApiError(400, "INVALID_REQUEST", "필수 헤더 누락: x-request-id", False)
 
     recent_messages = [m.model_dump() for m in body.recentMessages]
+    conversation_messages = [m.model_dump() for m in body.conversationMessages]
     risk_components = risk_components_below_cutoff(body.prqc)
     safety_type = classify_safety_signal(body.userMessage, risk_components)
 
     try:
         content = consult(
             recent_messages=recent_messages,
+            conversation_messages=conversation_messages,
             user_message=body.userMessage,
             overall_score=body.overallScore,
             prqc=body.prqc,
