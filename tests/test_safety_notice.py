@@ -1,4 +1,4 @@
-from app.pipeline.consultation import build_evidence_refs, build_safety_notice
+from app.pipeline.consultation.consultation import build_evidence_refs, build_safety_notice
 from app.schemas import ConsultationEvidenceContext
 
 

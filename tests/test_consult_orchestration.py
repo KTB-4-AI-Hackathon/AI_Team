@@ -1,4 +1,4 @@
-from app.pipeline.consultation import consult
+from app.pipeline.consultation.consultation import consult
 from app.schemas import ConsultationEvidenceContext
 
 

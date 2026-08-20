@@ -1,4 +1,4 @@
-from app.pipeline.ingest import verify_sha256
+from app.pipeline.analysis.ingest import verify_sha256
 
 
 def test_returns_true_when_hash_matches():

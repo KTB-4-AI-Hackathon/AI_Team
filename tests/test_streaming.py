@@ -32,7 +32,7 @@ def test_yields_text_chunks_as_they_stream_in():
 
 
 def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
-    from app.pipeline.consultation import stream_consult
+    from app.pipeline.consultation.consultation import stream_consult
 
     chunks = list(
         stream_consult(
@@ -51,7 +51,7 @@ def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
 
 
 def test_stream_consult_yields_llm_chunks_for_ordinary_message():
-    from app.pipeline.consultation import stream_consult
+    from app.pipeline.consultation.consultation import stream_consult
 
     chunks = list(
         stream_consult(

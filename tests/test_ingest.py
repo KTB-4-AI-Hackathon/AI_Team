@@ -1,4 +1,4 @@
-from app.pipeline.ingest import parse_ndjson
+from app.pipeline.analysis.ingest import parse_ndjson
 
 
 def test_parses_ndjson_lines_mapping_self_and_other_to_korean_labels():

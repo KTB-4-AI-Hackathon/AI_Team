@@ -8,9 +8,9 @@ from pydantic import ValidationError
 
 from app.dependencies import get_llm_client, require_service_token
 from app.pipeline.errors import ApiError
-from app.pipeline.ingest import decompress_gzip, parse_ndjson, verify_sha256
-from app.pipeline.response_adapter import to_analysis_response
-from app.pipeline.scoring import score_relationship
+from app.pipeline.analysis.ingest import decompress_gzip, parse_ndjson, verify_sha256
+from app.pipeline.analysis.response_adapter import to_analysis_response
+from app.pipeline.analysis.scoring import score_relationship
 from app.schemas import AnalysisContext, AnalysisResponse
 
 logger = logging.getLogger("ai_server")

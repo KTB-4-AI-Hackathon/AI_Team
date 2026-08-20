@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, Request
 
 from app.dependencies import get_llm_client, require_service_token
-from app.pipeline.consultation import (
+from app.pipeline.consultation.consultation import (
     build_evidence_refs,
     build_safety_notice,
     classify_safety_signal,
