@@ -36,6 +36,8 @@ def _form_data(sha256: str, **overrides) -> dict[str, str]:
         "format": "NORMALIZED_NDJSON_GZIP",
         "formatVersion": "conversation-ndjson-1.0.0",
         "sha256": sha256,
+        "relationship_feeling_score": 2,
+        "conversation_comfort_score": 7
     }
     base.update(overrides)
     return base

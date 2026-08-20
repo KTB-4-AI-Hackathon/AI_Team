@@ -13,6 +13,7 @@ class ScoreResult(BaseModel):
     scores: dict[str, int]
     risk_components: list[str]
     evidence: dict[str, str]
+    self_report_comparison: str
 
 
 class Metric(BaseModel):

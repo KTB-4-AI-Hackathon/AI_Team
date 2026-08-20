@@ -85,6 +85,8 @@ def analyze(
     file: UploadFile = File(...),
     _auth: None = Depends(require_service_token),
     llm_client=Depends(get_llm_client),
+    relationship_feeling_score: int = Form(...), # TODO: Java에서 검토 필요
+    conversation_comfort_score: int = Form(...), # TODO: Java에서 검토 필요
 ):
     missing_headers = [h for h in REQUIRED_HEADERS if not request.headers.get(h)]
     if missing_headers:
@@ -112,7 +114,7 @@ def analyze(
         )
 
     try:
-        score_result = score_relationship(messages, llm_client)
+        score_result = score_relationship(messages, llm_client, relationship_feeling_score, conversation_comfort_score)
     except Exception:
         logger.exception("scoring failed for analysisId=%s", analysisId)
         return _error_response(
