@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from app.pipeline.scoring import build_prqc_prompt, parse_prqc_response, score_relationship
+from app.pipeline.analysis.scoring import build_prqc_prompt, parse_prqc_response, score_relationship
 from app.schemas import AnalysisContext, Message
 
 _TS = datetime(2024, 1, 1, 10, 23)

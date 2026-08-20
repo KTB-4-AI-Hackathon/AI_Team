@@ -1,6 +1,6 @@
 import gzip
 
-from app.pipeline.ingest import decompress_gzip
+from app.pipeline.analysis.ingest import decompress_gzip
 
 
 def test_decompresses_gzip_bytes_to_text():

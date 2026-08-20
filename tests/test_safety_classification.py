@@ -1,4 +1,4 @@
-from app.pipeline.consultation import classify_safety_signal
+from app.pipeline.consultation.consultation import classify_safety_signal
 
 
 def test_classifies_crisis_support_when_crisis_keyword_present():

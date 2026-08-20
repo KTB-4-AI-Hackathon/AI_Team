@@ -1,4 +1,4 @@
-from app.pipeline.consultation import build_consultation_prompt
+from app.pipeline.consultation.consultation import build_consultation_prompt
 from app.schemas import ConsultationEvidenceContext
 
 _PRQC = {

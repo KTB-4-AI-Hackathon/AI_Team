@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from app.pipeline.response_adapter import to_analysis_response
+from app.pipeline.analysis.response_adapter import to_analysis_response
 from app.schemas import ScoreResult
 
 _COMPLETED_AT = datetime(2026, 8, 19, 6, 22, 24, tzinfo=timezone.utc)
