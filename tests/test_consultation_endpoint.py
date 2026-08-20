@@ -36,6 +36,7 @@ def _request_body(**overrides) -> dict:
             }
         ],
         "recentMessages": [],
+        "conversationMessages": [],
         "userMessage": "답장이 너무 늦어서 서운해요",
     }
     base.update(overrides)
