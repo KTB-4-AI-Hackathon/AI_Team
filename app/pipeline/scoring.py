@@ -1,7 +1,7 @@
 import json
 
 from app.pipeline.llm_client import invoke_llm
-from app.schemas import Message, ScoreResult
+from app.schemas import AnalysisContext, Message, ScoreResult
 
 PRQC_COMPONENTS = [
     "Satisfaction",
@@ -107,11 +107,20 @@ def _strip_code_fence(text: str) -> str:
 
 
 def score_relationship(
-    messages: list[Message],
-    llm_client,
-    relationship_feeling_score: int,
-    conversation_comfort_score: int,
+    messages: list[Message], llm_client, analysis_context: AnalysisContext
 ) -> ScoreResult:
+    check_in_answers = analysis_context.current.checkIn.answers
+
+    relationship_feeling_answer = next((answer for answer in check_in_answers if answer.questionCode == 'RELATIONSHIP_FEELING'), None)
+    if relationship_feeling_answer is None:
+        raise ValueError("RELATIONSHIP_FEELING 응답이 존재하지 않음")
+    relationship_feeling_score = relationship_feeling_answer.score
+
+    conversation_comfort_answer = next((answer for answer in check_in_answers if answer.questionCode == 'CONVERSATION_COMFORT'), None)
+    if conversation_comfort_answer is None:
+        raise ValueError("CONVERSATION_COMFORT 응답이 존재하지 않음")
+    conversation_comfort_score = conversation_comfort_answer.score
+
     prompt = build_prqc_prompt(messages, relationship_feeling_score, conversation_comfort_score)
     raw_output = invoke_llm(llm_client, prompt)
     return parse_prqc_response(raw_output)

@@ -27,6 +27,30 @@ SAMPLE_CONVERSATION = [
     {"sender": "SELF", "sentAt": "2026-08-10T10:28:00+09:00", "text": "고마워 진짜. 너랑 얘기하면 항상 마음이 편해져"},
 ]
 
+ANALYSIS_CONTEXT = {
+    "user": {
+        "userId": "0198c8a7-3000-7000-8000-000000000002",
+        "displayName": "우",
+        "timezone": "Asia/Seoul",
+    },
+    "relationship": {
+        "relationshipId": "0198c8a7-3000-7000-8000-000000000003",
+        "name": "민지",
+        "relationshipType": "FRIEND",
+        "status": "ANALYZING",
+    },
+    "current": {
+        "conversationFileId": "0198c8a7-3000-7000-8000-000000000004",
+        "checkIn": {
+            "checkInId": "0198c8a7-3000-7000-8000-000000000005",
+            "weekStart": "2026-08-17",
+            "inputAt": "2026-08-17T01:00:00Z",
+            "answers": [{"questionCode": "RELATIONSHIP_FEELING", "score": 6}],
+        },
+    },
+    "history": [],
+}
+
 
 def main() -> None:
     lines = [json.dumps(m, ensure_ascii=False) for m in SAMPLE_CONVERSATION]
@@ -48,8 +72,7 @@ def main() -> None:
             "format": "NORMALIZED_NDJSON_GZIP",
             "formatVersion": "conversation-ndjson-1.0.0",
             "sha256": sha256,
-            "relationship_feeling_score": 2,
-            "conversation_comfort_score": 7
+            "context": json.dumps(ANALYSIS_CONTEXT, ensure_ascii=False),
         },
         files={"file": ("conversation.ndjson.gz", payload, "application/gzip")},
         timeout=60,

@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from app.pipeline.scoring import build_prqc_prompt, parse_prqc_response, score_relationship
-from app.schemas import Message
+from app.schemas import AnalysisContext, Message
 
 _TS = datetime(2024, 1, 1, 10, 23)
 
@@ -123,3 +123,44 @@ def test_score_relationship_orchestrates_prompt_build_and_response_parse():
     assert result.scores["Satisfaction"] == 6
     assert result.risk_components == ["Commitment"]
     assert result.evidence["Commitment"] == "선톡이 한쪽으로 쏠림"
+
+
+def test_score_relationship_accepts_validated_analysis_context_without_changing_prompt_behavior():
+    context = AnalysisContext.model_validate(
+        {
+            "user": {"userId": "0198c8a7-3000-7000-8000-000000000002", "displayName": "우", "timezone": "Asia/Seoul"},
+            "relationship": {
+                "relationshipId": "0198c8a7-3000-7000-8000-000000000003",
+                "name": "민지",
+                "relationshipType": "FRIEND",
+                "status": "ANALYZING",
+            },
+            "current": {
+                "conversationFileId": "0198c8a7-3000-7000-8000-000000000004",
+                "checkIn": {
+                    "checkInId": "0198c8a7-3000-7000-8000-000000000005",
+                    "weekStart": "2026-08-17",
+                    "inputAt": "2026-08-17T01:00:00Z",
+                    "answers": [{"questionCode": "RELATIONSHIP_FEELING", "score": 6}],
+                },
+            },
+            "history": [],
+        }
+    )
+    fake_client = _FakeLLMClient(
+        json.dumps(
+            {
+                "Satisfaction": 6,
+                "Commitment": 6,
+                "Intimacy": 6,
+                "Trust": 6,
+                "Passion": 6,
+                "Love": 6,
+                "evidence": {"Trust": "약속을 지켰어요."},
+            }
+        )
+    )
+
+    result = score_relationship([Message(speaker="나", timestamp=_TS, text="안녕")], fake_client, context)
+
+    assert result.scores["Trust"] == 6
