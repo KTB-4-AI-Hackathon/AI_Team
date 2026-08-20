@@ -21,6 +21,11 @@ class Evidence(BaseModel):
     summary: str
 
 
+class AnalysisWarning(BaseModel):
+    code: str
+    message: str
+
+
 class AnalysisResponse(BaseModel):
     analysisId: str
     modelVersion: str
@@ -28,7 +33,7 @@ class AnalysisResponse(BaseModel):
     processedMessageCount: int
     components: dict[str, int]
     evidences: list[Evidence]
-    warnings: list[str]
+    warnings: list[AnalysisWarning]
     completedAt: datetime
 
 

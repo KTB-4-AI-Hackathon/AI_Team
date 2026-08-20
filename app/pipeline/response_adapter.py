@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app.schemas import AnalysisResponse, Evidence, ScoreResult
+from app.schemas import AnalysisResponse, AnalysisWarning, Evidence, ScoreResult
 
 
 def _to_hundred_scale(score_7: int) -> int:
@@ -28,7 +28,10 @@ def to_analysis_response(
         for component, summary in score_result.evidence.items()
     ]
     warnings = [
-        f"{component.lower()}: 근거 문장이 생성되지 않았습니다."
+        AnalysisWarning(
+            code="NO_STRUCTURED_EVIDENCE",
+            message=f"{component.lower()}: 근거 문장이 생성되지 않았습니다.",
+        )
         for component in score_result.scores
         if component not in score_result.evidence
     ]

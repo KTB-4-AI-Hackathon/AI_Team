@@ -73,4 +73,5 @@ def test_adds_warning_for_component_missing_evidence():
     )
 
     assert len(response.evidences) == 1
-    assert "satisfaction" in response.warnings[0]
+    assert response.warnings[0].code == "NO_STRUCTURED_EVIDENCE"
+    assert "satisfaction" in response.warnings[0].message
