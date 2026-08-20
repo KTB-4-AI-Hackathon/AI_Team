@@ -2,6 +2,7 @@ import gzip
 import hashlib
 import json
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -11,7 +12,7 @@ _SPEAKER_LABEL = {"SELF": "나", "OTHER": "상대방"}
 
 
 class NormalizedLine(BaseModel):
-    sender: str
+    sender: Literal["SELF", "OTHER"]
     sentAt: datetime
     text: str
 

@@ -43,5 +43,6 @@ def to_analysis_response(
         components=components,
         evidences=evidences,
         warnings=warnings,
+        selfReportComparison=score_result.self_report_comparison,
         completedAt=completed_at,
     )
