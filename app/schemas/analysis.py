@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
-from app.schemas.common import PRQC_COMPONENT, Message, Metric, StrictModel
+from app.schemas.common import PRQC_COMPONENT, Metric, StrictModel
 
 
 class ScoreResult(StrictModel):

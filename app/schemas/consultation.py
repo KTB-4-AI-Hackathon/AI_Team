@@ -1,5 +1,7 @@
+from datetime import datetime
 from typing import Literal
 
+from pydantic import Field
 from app.schemas.common import PRQC_COMPONENT, StrictModel
 
 
@@ -14,6 +16,10 @@ class ConsultationHistoryMessage(StrictModel):
     role: Literal["USER", "ASSISTANT"]
     content: str
 
+class ConsultationConversationMessage(StrictModel):
+    sender: Literal["SELF", "OTHER"]
+    sentAt: datetime
+    text: str
 
 class ConsultationAnswerRequest(StrictModel):
     reportId: str
@@ -22,6 +28,7 @@ class ConsultationAnswerRequest(StrictModel):
     prqc: dict[str, int]
     evidences: list[ConsultationEvidenceContext]
     recentMessages: list[ConsultationHistoryMessage]
+    conversationMessages: list[ConsultationConversationMessage] = Field(default_factory=list)
     userMessage: str
 
 
