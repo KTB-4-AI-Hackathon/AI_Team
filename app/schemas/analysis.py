@@ -2,34 +2,9 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
-
-class StrictModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-
-PRQC_COMPONENT = Literal["satisfaction", "commitment", "intimacy", "trust", "passion", "love"]
-
-ERROR_CODE = Literal[
-    "INVALID_REQUEST",
-    "AUTH_REQUIRED",
-    "FORBIDDEN",
-    "CONVERSATION_NOT_ACCESSIBLE",
-    "IDEMPOTENCY_KEY_REUSED",
-    "INSUFFICIENT_MESSAGES",
-    "INVALID_CONVERSATION_DATA",
-    "AI_RATE_LIMITED",
-    "AI_INTERNAL_ERROR",
-    "AI_PROVIDER_UNAVAILABLE",
-    "AI_TIMEOUT",
-]
-
-
-class Message(StrictModel):
-    speaker: str
-    timestamp: datetime
-    text: str
+from app.schemas.common import PRQC_COMPONENT, Message, Metric, StrictModel
 
 
 class ScoreResult(StrictModel):
@@ -37,14 +12,6 @@ class ScoreResult(StrictModel):
     risk_components: list[str]
     evidence: dict[str, str]
     self_report_comparison: str
-
-
-class Metric(StrictModel):
-    name: str
-    currentValue: float
-    previousValue: float | None
-    unit: str
-    period: str
 
 
 class Evidence(StrictModel):
@@ -69,63 +36,6 @@ class AnalysisResponse(StrictModel):
     warnings: list[AnalysisWarning]
     selfReportComparison: str
     completedAt: datetime
-
-
-class ConsultationEvidenceContext(StrictModel):
-    evidenceId: str
-    component: PRQC_COMPONENT
-    score: int
-    summary: str
-
-
-class ConsultationHistoryMessage(StrictModel):
-    role: Literal["USER", "ASSISTANT"]
-    content: str
-
-
-class ConsultationAnswerRequest(StrictModel):
-    reportId: str
-    overallScore: int
-    scoreChange: int | None = None
-    prqc: dict[str, int]
-    evidences: list[ConsultationEvidenceContext]
-    recentMessages: list[ConsultationHistoryMessage]
-    userMessage: str
-
-
-class ConsultationEvidenceReference(StrictModel):
-    evidenceId: str
-    label: str
-
-
-class ConsultationResourceQuery(StrictModel):
-    category: Literal["MENTAL_HEALTH_COUNSELING", "RELATIONSHIP_COUNSELING", "CRISIS_SUPPORT"]
-    region: str = "KR"
-
-
-class ConsultationSafetyNotice(StrictModel):
-    type: Literal["CRISIS_SUPPORT", "SUPPORT_RECOMMENDATION"]
-    title: str
-    message: str
-    resourceQuery: ConsultationResourceQuery
-
-
-class ConsultationAnswerResponse(StrictModel):
-    content: str
-    evidenceRefs: list[ConsultationEvidenceReference]
-    safetyNotice: ConsultationSafetyNotice | None
-
-
-class ErrorDetail(StrictModel):
-    code: ERROR_CODE
-    message: str
-    retryable: bool
-    requestId: str
-    details: dict | None = None
-
-
-class ErrorResponse(StrictModel):
-    error: ErrorDetail
 
 
 class CheckInAnswerContext(StrictModel):
@@ -170,7 +80,7 @@ class HistoricalConversationContext(StrictModel):
 
 
 class HistoricalEvidence(StrictModel):
-    component: Literal["satisfaction", "commitment", "intimacy", "trust", "passion", "love"]
+    component: PRQC_COMPONENT
     score: int = Field(ge=0, le=100)
     summary: str = Field(min_length=1, max_length=1000)
     metric: Metric | None = None
