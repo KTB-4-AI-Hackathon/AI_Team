@@ -3,6 +3,9 @@
 사용법:
   1) 터미널 1: uvicorn app.main:app --reload --port 8000
   2) 터미널 2: python scripts/manual_test_consultation.py
+
+USER_MESSAGE만 바꿔서 재실행하면 바로 다른 질문으로 테스트할 수 있습니다.
+HISTORY는 실제로 문제가 됐던 대화 흐름(문구 추천 요청 직전까지)을 넣어뒀어요.
 """
 
 import json
@@ -15,33 +18,57 @@ load_dotenv()
 
 SERVER_URL = "http://localhost:8000/internal/v1/consultation-answers"
 
+# 여기만 바꿔서 다시 실행해보세요.
+USER_MESSAGE = "너가 결정해서 얘기해줘"
+
+HISTORY = [
+    {"role": "USER", "content": "대답을 너무 성의 없게해"},
+    {"role": "ASSISTANT", "content": "(공감 + 관찰된 패턴 + 선택 위임)"},
+    {"role": "USER", "content": "요즘 대화가 눈에 띄게 줄어든 것 같아"},
+    {"role": "ASSISTANT", "content": "(공감 + 관찰된 패턴 + 선택 위임)"},
+    {"role": "USER", "content": "이 관계 계속 유지해도 될까?"},
+    {"role": "ASSISTANT", "content": "(공감 + 관찰된 패턴 + 선택 위임)"},
+    {"role": "USER", "content": "요즘 좀 나아진 것 같아"},
+    {"role": "ASSISTANT", "content": "(긍정 반응 + 선택 위임)"},
+    {"role": "USER", "content": "그럼 오랜만에 연락하는 동생한테 뭐라고 연락을 보내는게 좋을까?"},
+    {
+        "role": "ASSISTANT",
+        "content": (
+            "오랫동안 연락이 뜸했던 동생에게 보낼 메시지라면, 부담스럽지 않으면서도 "
+            "따뜻한 안부를 묻는 내용이 좋아요. 이렇게 보내보세요.\n\n"
+            "\"OO야, 잘 지내고 있지? 문득 네 생각이 나서 연락해 봤어. 바쁘겠지만 시간 날 때 "
+            "가볍게 안부 전해줘!\""
+        ),
+    },
+]
+
 REQUEST_BODY = {
     "reportId": "manual-consult-1",
-    "overallScore": 45,
+    "overallScore": 42,
     "prqc": {
-        "satisfaction": 33,
-        "commitment": 17,
-        "intimacy": 33,
+        "satisfaction": 45,
+        "commitment": 40,
+        "intimacy": 35,
         "trust": 50,
-        "passion": 17,
-        "love": 33,
+        "passion": 40,
+        "love": 45,
     },
     "evidences": [
         {
             "evidenceId": "e1",
-            "component": "commitment",
-            "score": 17,
-            "summary": "상대방이 먼저 연락하는 경우가 거의 없음",
+            "component": "passion",
+            "score": 40,
+            "summary": "최근 2주간 답장이 평균 24시간 이상 걸림",
         },
         {
             "evidenceId": "e2",
-            "component": "passion",
-            "score": 17,
-            "summary": "대화 반응 속도가 지속적으로 느림",
+            "component": "commitment",
+            "score": 40,
+            "summary": "지난 3번의 약속 중 2번이 취소됨",
         },
     ],
-    "recentMessages": [],
-    "userMessage": "이 친구랑 계속 연락해야 할지 모르겠어요. 항상 제가 먼저 연락해요.",
+    "recentMessages": HISTORY,
+    "userMessage": USER_MESSAGE,
 }
 
 
