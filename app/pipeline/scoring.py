@@ -80,11 +80,6 @@ _RISK_CUTOFF = 4
 
 
 def parse_prqc_response(raw_output: str) -> ScoreResult:
-    if isinstance(raw_output, list):
-        raw_output = ''.join(
-            block.get('text', '') if isinstance(block, dict) else str(block)
-            for block in raw_output
-        )
     data = json.loads(_strip_code_fence(raw_output))
     scores = {c: data[c] for c in PRQC_COMPONENTS}
     risk_components = [c for c, s in scores.items() if s < _RISK_CUTOFF]
