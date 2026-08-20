@@ -5,6 +5,7 @@ from app.schemas import (
     ConsultationResourceQuery,
     ConsultationSafetyNotice,
 )
+from app.pipeline.risk import RISK_CUTOFF_100
 
 # 자살/자해 관련 표현을 걸러내는 키워드 목록 (AI LLM에 넘기기 전에 먼저 감지)
 _CRISIS_KEYWORDS = [
@@ -152,15 +153,9 @@ _SYSTEM_PROMPT_TEMPLATE = """당신은 관계 고민을 들어주는 상담 도�
 [전문 상담 권유 필요]: {needs_escalation}
 """
 
-# 백엔드가 넘겨주는 컴포넌트 점수는 0~100 스케일이라, "위험"의 기준선도
-# 그 스케일에 맞춰 50점으로 잡았다. (관계 수치화 쪽 내부 1~7점 스케일의
-# DAS-4 절단점 4점을 0~100으로 환산하면 정확히 50점이 되어 서로 맞음
-_RISK_CUTOFF_100 = 50
-
-
 def risk_components_below_cutoff(prqc: dict[str, int]) -> list[str]:
     # 0~100점 컴포넌트 중 50점 미만인 것들의 이름 리스트를 반환
-    return [component for component, score in prqc.items() if score < _RISK_CUTOFF_100]
+    return [component for component, score in prqc.items() if score < RISK_CUTOFF_100]
 
 
 def build_consultation_prompt(

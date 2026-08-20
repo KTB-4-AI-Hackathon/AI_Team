@@ -2,6 +2,7 @@ import json
 
 from app.pipeline.llm_client import invoke_llm
 from app.schemas import AnalysisContext, Message, ScoreResult
+from app.pipeline.risk import to_seven_scale_cutoff
 
 PRQC_COMPONENTS = [
     "Satisfaction",
@@ -76,7 +77,7 @@ def build_prqc_prompt(
     ]
 
 
-_RISK_CUTOFF = 4
+_RISK_CUTOFF = to_seven_scale_cutoff()
 
 
 def parse_prqc_response(raw_output: str) -> ScoreResult:
