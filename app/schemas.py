@@ -9,20 +9,37 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class Message(BaseModel):
+PRQC_COMPONENT = Literal["satisfaction", "commitment", "intimacy", "trust", "passion", "love"]
+
+ERROR_CODE = Literal[
+    "INVALID_REQUEST",
+    "AUTH_REQUIRED",
+    "FORBIDDEN",
+    "CONVERSATION_NOT_ACCESSIBLE",
+    "IDEMPOTENCY_KEY_REUSED",
+    "INSUFFICIENT_MESSAGES",
+    "INVALID_CONVERSATION_DATA",
+    "AI_RATE_LIMITED",
+    "AI_INTERNAL_ERROR",
+    "AI_PROVIDER_UNAVAILABLE",
+    "AI_TIMEOUT",
+]
+
+
+class Message(StrictModel):
     speaker: str
     timestamp: datetime
     text: str
 
 
-class ScoreResult(BaseModel):
+class ScoreResult(StrictModel):
     scores: dict[str, int]
     risk_components: list[str]
     evidence: dict[str, str]
     self_report_comparison: str
 
 
-class Metric(BaseModel):
+class Metric(StrictModel):
     name: str
     currentValue: float
     previousValue: float | None
@@ -30,19 +47,19 @@ class Metric(BaseModel):
     period: str
 
 
-class Evidence(BaseModel):
-    component: str
+class Evidence(StrictModel):
+    component: PRQC_COMPONENT
     score: int
     summary: str
     metric: Metric | None = None
 
 
-class AnalysisWarning(BaseModel):
-    code: str
+class AnalysisWarning(StrictModel):
+    code: Literal["LIMITED_DATE_RANGE", "LOW_MESSAGE_COUNT", "NO_STRUCTURED_EVIDENCE", "PARTIAL_ANALYSIS"]
     message: str
 
 
-class AnalysisResponse(BaseModel):
+class AnalysisResponse(StrictModel):
     analysisId: str
     modelVersion: str
     promptVersion: str
@@ -54,19 +71,19 @@ class AnalysisResponse(BaseModel):
     completedAt: datetime
 
 
-class ConsultationEvidenceContext(BaseModel):
+class ConsultationEvidenceContext(StrictModel):
     evidenceId: str
-    component: str
+    component: PRQC_COMPONENT
     score: int
     summary: str
 
 
-class ConsultationHistoryMessage(BaseModel):
-    role: str
+class ConsultationHistoryMessage(StrictModel):
+    role: Literal["USER", "ASSISTANT"]
     content: str
 
 
-class ConsultationAnswerRequest(BaseModel):
+class ConsultationAnswerRequest(StrictModel):
     reportId: str
     overallScore: int
     scoreChange: int | None = None
@@ -76,38 +93,38 @@ class ConsultationAnswerRequest(BaseModel):
     userMessage: str
 
 
-class ConsultationEvidenceReference(BaseModel):
+class ConsultationEvidenceReference(StrictModel):
     evidenceId: str
     label: str
 
 
-class ConsultationResourceQuery(BaseModel):
-    category: str
+class ConsultationResourceQuery(StrictModel):
+    category: Literal["MENTAL_HEALTH_COUNSELING", "RELATIONSHIP_COUNSELING", "CRISIS_SUPPORT"]
     region: str = "KR"
 
 
-class ConsultationSafetyNotice(BaseModel):
-    type: str
+class ConsultationSafetyNotice(StrictModel):
+    type: Literal["CRISIS_SUPPORT", "SUPPORT_RECOMMENDATION"]
     title: str
     message: str
     resourceQuery: ConsultationResourceQuery
 
 
-class ConsultationAnswerResponse(BaseModel):
+class ConsultationAnswerResponse(StrictModel):
     content: str
     evidenceRefs: list[ConsultationEvidenceReference]
     safetyNotice: ConsultationSafetyNotice | None
 
 
-class ErrorDetail(BaseModel):
-    code: str
+class ErrorDetail(StrictModel):
+    code: ERROR_CODE
     message: str
     retryable: bool
     requestId: str
     details: dict | None = None
 
 
-class ErrorResponse(BaseModel):
+class ErrorResponse(StrictModel):
     error: ErrorDetail
 
 
