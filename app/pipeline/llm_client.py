@@ -6,11 +6,12 @@ _MESSAGE_TYPES = {"system": SystemMessage, "assistant": AIMessage}
 
 
 def create_claude_client(temperature: float = 0.0) -> ChatAnthropic:
-    return ChatAnthropic(model="claude-sonnet-4-5", temperature=temperature)
+    return ChatAnthropic(model_name="claude-sonnet-4-5", temperature=temperature, timeout=None,
+    stop=None)
 
 
 def create_gemini_client(temperature: float = 0.0) -> ChatGoogleGenerativeAI:
-    return ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=temperature)
+    return ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite", temperature=temperature)
 
 
 def _to_langchain_messages(prompt: list[dict[str, str]]):

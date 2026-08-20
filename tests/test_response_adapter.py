@@ -46,6 +46,7 @@ def test_converts_score_result_to_lowercase_0_to_100_response():
     assert response.components["intimacy"] == 50
     assert len(response.evidences) == 6
     assert response.evidences[0].component == "satisfaction"
+    assert response.evidences[0].metric is None
     assert response.warnings == []
 
 
@@ -73,4 +74,5 @@ def test_adds_warning_for_component_missing_evidence():
     )
 
     assert len(response.evidences) == 1
-    assert "satisfaction" in response.warnings[0]
+    assert response.warnings[0].code == "NO_STRUCTURED_EVIDENCE"
+    assert "satisfaction" in response.warnings[0].message
