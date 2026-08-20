@@ -46,6 +46,51 @@ class AnalysisResponse(BaseModel):
     completedAt: datetime
 
 
+class ConsultationEvidenceContext(BaseModel):
+    evidenceId: str
+    component: str
+    score: int
+    summary: str
+
+
+class ConsultationHistoryMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ConsultationAnswerRequest(BaseModel):
+    reportId: str
+    overallScore: int
+    scoreChange: int | None = None
+    prqc: dict[str, int]
+    evidences: list[ConsultationEvidenceContext]
+    recentMessages: list[ConsultationHistoryMessage]
+    userMessage: str
+
+
+class ConsultationEvidenceReference(BaseModel):
+    evidenceId: str
+    label: str
+
+
+class ConsultationResourceQuery(BaseModel):
+    category: str
+    region: str = "KR"
+
+
+class ConsultationSafetyNotice(BaseModel):
+    type: str
+    title: str
+    message: str
+    resourceQuery: ConsultationResourceQuery
+
+
+class ConsultationAnswerResponse(BaseModel):
+    content: str
+    evidenceRefs: list[ConsultationEvidenceReference]
+    safetyNotice: ConsultationSafetyNotice | None
+
+
 class ErrorDetail(BaseModel):
     code: str
     message: str
