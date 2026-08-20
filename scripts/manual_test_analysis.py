@@ -45,7 +45,10 @@ ANALYSIS_CONTEXT = {
             "checkInId": "0198c8a7-3000-7000-8000-000000000005",
             "weekStart": "2026-08-17",
             "inputAt": "2026-08-17T01:00:00Z",
-            "answers": [{"questionCode": "RELATIONSHIP_FEELING", "score": 6}],
+             "answers": [
+                {"questionCode": "RELATIONSHIP_FEELING", "score": 6},
+                {"questionCode": "CONVERSATION_COMFORT", "score": 6},
+            ],
         },
     },
     "history": [],

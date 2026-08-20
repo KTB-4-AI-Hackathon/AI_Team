@@ -127,6 +127,10 @@ def analyze(
 
     try:
         score_result = score_relationship(messages, llm_client, analysis_context)
+    except ValueError as e:
+        return _error_response(
+            request, 422, "INVALID_CONVERSATION_DATA", str(e), False
+        )
     except Exception:
         logger.exception("scoring failed for analysisId=%s", analysisId)
         return _error_response(
