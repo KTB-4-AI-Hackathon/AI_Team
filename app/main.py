@@ -87,7 +87,7 @@ def analyze(
     context: str = Form(...),
     file: UploadFile = File(...),
     _auth: None = Depends(require_service_token),
-    llm_client=Depends(get_llm_client),
+    llm_client=Depends(get_llm_client)
 ):
     missing_headers = [h for h in REQUIRED_HEADERS if not request.headers.get(h)]
     if missing_headers:
