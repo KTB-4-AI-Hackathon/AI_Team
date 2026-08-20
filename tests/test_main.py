@@ -123,6 +123,7 @@ def test_returns_400_when_sha256_does_not_match(monkeypatch):
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "INVALID_REQUEST"
+    assert "details" in response.json()["error"]
 
 
 def test_returns_400_when_idempotency_key_header_missing(monkeypatch):

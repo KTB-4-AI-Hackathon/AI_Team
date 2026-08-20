@@ -46,6 +46,7 @@ def test_converts_score_result_to_lowercase_0_to_100_response():
     assert response.components["intimacy"] == 50
     assert len(response.evidences) == 6
     assert response.evidences[0].component == "satisfaction"
+    assert response.evidences[0].metric is None
     assert response.warnings == []
 
 
