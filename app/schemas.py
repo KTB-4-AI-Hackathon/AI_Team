@@ -30,14 +30,6 @@ class Evidence(BaseModel):
     metric: Metric | None = None
 
 
-class RelationshipContext(BaseModel):
-    relationshipType: str
-    analyzedAt: datetime
-    overallScore: int
-    components: dict[str, int]
-    evidences: list[Evidence]
-
-
 class AnalysisResponse(BaseModel):
     analysisId: str
     modelVersion: str
@@ -49,23 +41,49 @@ class AnalysisResponse(BaseModel):
     completedAt: datetime
 
 
-class ConsultationMessage(BaseModel):
+class ConsultationEvidenceContext(BaseModel):
+    evidenceId: str
+    component: str
+    score: int
+    summary: str
+
+
+class ConsultationHistoryMessage(BaseModel):
     role: str
     content: str
 
 
-class ConsultationRequest(BaseModel):
-    consultationId: str
+class ConsultationAnswerRequest(BaseModel):
+    reportId: str
+    overallScore: int
+    scoreChange: int | None = None
+    prqc: dict[str, int]
+    evidences: list[ConsultationEvidenceContext]
+    recentMessages: list[ConsultationHistoryMessage]
     userMessage: str
-    history: list[ConsultationMessage] = []
-    relationshipContext: RelationshipContext
 
 
-class ConsultationResponse(BaseModel):
-    consultationId: str
-    reply: str
-    safetyType: str | None
-    completedAt: datetime
+class ConsultationEvidenceReference(BaseModel):
+    evidenceId: str
+    label: str
+
+
+class ConsultationResourceQuery(BaseModel):
+    category: str
+    region: str = "KR"
+
+
+class ConsultationSafetyNotice(BaseModel):
+    type: str
+    title: str
+    message: str
+    resourceQuery: ConsultationResourceQuery
+
+
+class ConsultationAnswerResponse(BaseModel):
+    content: str
+    evidenceRefs: list[ConsultationEvidenceReference]
+    safetyNotice: ConsultationSafetyNotice | None
 
 
 class ErrorDetail(BaseModel):

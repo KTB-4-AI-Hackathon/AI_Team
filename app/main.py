@@ -11,6 +11,8 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from app.pipeline.consultation import (
+    build_evidence_refs,
+    build_safety_notice,
     classify_safety_signal,
     consult,
     risk_components_below_cutoff,
@@ -21,8 +23,8 @@ from app.pipeline.response_adapter import to_analysis_response
 from app.pipeline.scoring import score_relationship
 from app.schemas import (
     AnalysisResponse,
-    ConsultationRequest,
-    ConsultationResponse,
+    ConsultationAnswerRequest,
+    ConsultationAnswerResponse,
     ErrorDetail,
     ErrorResponse,
 )
@@ -127,39 +129,41 @@ def analyze(
     )
 
 
-@app.post("/internal/v1/consultations/messages", response_model=ConsultationResponse)
-def consultation_message(
+@app.post("/internal/v1/consultation-answers", response_model=ConsultationAnswerResponse)
+def consultation_answers(
     request: Request,
-    body: ConsultationRequest,
+    body: ConsultationAnswerRequest,
     _auth: None = Depends(require_service_token),
     llm_client=Depends(get_llm_client),
 ):
-    missing_headers = [h for h in REQUIRED_HEADERS if not request.headers.get(h)]
-    if missing_headers:
+    # 분석 엔드포인트와 달리 이 엔드포인트는 Idempotency-Key를 요구하지 않는다
+    # (명세서 create_consultation_answer 시그니처 기준).
+    if not request.headers.get("x-request-id"):
         return _error_response(
-            request, 400, "INVALID_REQUEST", f"필수 헤더 누락: {', '.join(missing_headers)}", False
+            request, 400, "INVALID_REQUEST", "필수 헤더 누락: x-request-id", False
         )
 
-    history = [m.model_dump() for m in body.history]
-    risk_components = risk_components_below_cutoff(body.relationshipContext.components)
+    recent_messages = [m.model_dump() for m in body.recentMessages]
+    risk_components = risk_components_below_cutoff(body.prqc)
     safety_type = classify_safety_signal(body.userMessage, risk_components)
 
     try:
-        reply = consult(
-            history=history,
+        content = consult(
+            recent_messages=recent_messages,
             user_message=body.userMessage,
-            relationship_context=body.relationshipContext,
+            overall_score=body.overallScore,
+            prqc=body.prqc,
+            evidences=body.evidences,
             llm_client=llm_client,
         )
     except Exception:
-        logger.exception("consultation failed for consultationId=%s", body.consultationId)
+        logger.exception("consultation failed for reportId=%s", body.reportId)
         return _error_response(
             request, 503, "AI_PROVIDER_UNAVAILABLE", "일시적으로 상담 모델을 호출할 수 없습니다.", True
         )
 
-    return ConsultationResponse(
-        consultationId=body.consultationId,
-        reply=reply,
-        safetyType=safety_type,
-        completedAt=datetime.now(timezone.utc),
+    return ConsultationAnswerResponse(
+        content=content,
+        evidenceRefs=build_evidence_refs(body.evidences, risk_components),
+        safetyNotice=build_safety_notice(safety_type),
     )

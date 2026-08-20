@@ -1,7 +1,4 @@
-from datetime import datetime, timezone
-
 from app.pipeline.llm_client import stream_llm
-from app.schemas import RelationshipContext
 
 
 class _FakeStreamingClient:
@@ -14,21 +11,15 @@ class _FakeStreamingClient:
             yield _Chunk(text)
 
 
-def _relationship_context() -> RelationshipContext:
-    return RelationshipContext(
-        relationshipType="FRIEND",
-        analyzedAt=datetime(2026, 8, 19, tzinfo=timezone.utc),
-        overallScore=90,
-        components={
-            "satisfaction": 90,
-            "commitment": 90,
-            "intimacy": 90,
-            "trust": 90,
-            "passion": 90,
-            "love": 90,
-        },
-        evidences=[],
-    )
+def _prqc() -> dict[str, int]:
+    return {
+        "satisfaction": 90,
+        "commitment": 90,
+        "intimacy": 90,
+        "trust": 90,
+        "passion": 90,
+        "love": 90,
+    }
 
 
 def test_yields_text_chunks_as_they_stream_in():
@@ -45,9 +36,11 @@ def test_stream_consult_yields_single_crisis_chunk_when_signal_detected():
 
     chunks = list(
         stream_consult(
-            history=[],
+            recent_messages=[],
             user_message="죽고 싶다는 생각이 들어",
-            relationship_context=_relationship_context(),
+            overall_score=90,
+            prqc=_prqc(),
+            evidences=[],
             llm_client=_FakeStreamingClient(),
         )
     )
@@ -62,9 +55,11 @@ def test_stream_consult_yields_llm_chunks_for_ordinary_message():
 
     chunks = list(
         stream_consult(
-            history=[],
+            recent_messages=[],
             user_message="요즘 연락이 좀 뜸해요",
-            relationship_context=_relationship_context(),
+            overall_score=90,
+            prqc=_prqc(),
+            evidences=[],
             llm_client=_FakeStreamingClient(),
         )
     )
