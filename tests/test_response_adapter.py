@@ -25,6 +25,7 @@ def test_converts_score_result_to_lowercase_0_to_100_response():
             "Passion": "반응 속도가 빠름",
             "Love": "애정 표현이 꾸준함",
         },
+        self_report_comparison="사용자는 체크인에서 관계에 대한 감정을 대체로 긍정적으로 평가했지만, 대화에서는 선톡이 한쪽으로 쏠리는 등 Commitment 영역에서 자기보고와 다소 다른 신호가 관찰되었습니다."
     )
 
     response = to_analysis_response(
@@ -62,6 +63,7 @@ def test_adds_warning_for_component_missing_evidence():
         },
         risk_components=["Commitment"],
         evidence={"Commitment": "선톡이 한쪽으로 쏠림"},
+        self_report_comparison="사용자는 체크인에서 관계에 대한 감정을 대체로 긍정적으로 평가했지만, 대화에서는 선톡이 한쪽으로 쏠리는 등 Commitment 영역에서 자기보고와 다소 다른 신호가 관찰되었습니다."
     )
 
     response = to_analysis_response(

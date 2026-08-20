@@ -13,7 +13,7 @@ def test_prompt_includes_conversation_and_all_six_components():
         Message(speaker="상대방", timestamp=_TS, text="어 오랜만이야"),
     ]
 
-    prompt = build_prqc_prompt(messages)
+    prompt = build_prqc_prompt(messages, 2, 7)
 
     assert prompt[0]["role"] == "system"
     assert prompt[1]["role"] == "user"
@@ -26,7 +26,7 @@ def test_prompt_includes_conversation_and_all_six_components():
 def test_prompt_includes_pronoun_guidance_and_a_worked_example():
     messages = [Message(speaker="나", timestamp=_TS, text="안녕")]
 
-    prompt = build_prqc_prompt(messages)
+    prompt = build_prqc_prompt(messages, 2, 7)
     system_message = prompt[0]["content"]
 
     assert "나'와 '상대방'을 혼동하지" in system_message
@@ -118,7 +118,7 @@ def test_score_relationship_orchestrates_prompt_build_and_response_parse():
         )
     )
 
-    result = score_relationship(messages, fake_client)
+    result = score_relationship(messages, fake_client, 2, 7)
 
     assert result.scores["Satisfaction"] == 6
     assert result.risk_components == ["Commitment"]
