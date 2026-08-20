@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import uuid
-import json
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -74,6 +73,11 @@ def _error_response(
         error=ErrorDetail(code=code, message=message, retryable=retryable, requestId=request_id)
     )
     return JSONResponse(status_code=status_code, content=body.model_dump())
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
 
 
 @app.post("/internal/v1/prqc-analyses", response_model=AnalysisResponse)
