@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import uuid
+import json
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -22,6 +23,7 @@ from app.pipeline.llm_client import create_gemini_client
 from app.pipeline.response_adapter import to_analysis_response
 from app.pipeline.scoring import score_relationship
 from app.schemas import (
+    AnalysisContext,
     AnalysisResponse,
     ConsultationAnswerRequest,
     ConsultationAnswerResponse,
@@ -82,6 +84,7 @@ def analyze(
     format: str = Form(...),
     formatVersion: str = Form(...),
     sha256: str = Form(...),
+    context: str = Form(...),
     file: UploadFile = File(...),
     _auth: None = Depends(require_service_token),
     llm_client=Depends(get_llm_client),
@@ -90,6 +93,13 @@ def analyze(
     if missing_headers:
         return _error_response(
             request, 400, "INVALID_REQUEST", f"필수 헤더 누락: {', '.join(missing_headers)}", False
+        )
+
+    try:
+        analysis_context = AnalysisContext.model_validate(json.loads(context))
+    except (json.JSONDecodeError, ValidationError):
+        return _error_response(
+            request, 400, "INVALID_REQUEST", "분석 context 형식이 올바르지 않습니다.", False
         )
 
     data = file.file.read()
@@ -112,7 +122,7 @@ def analyze(
         )
 
     try:
-        score_result = score_relationship(messages, llm_client)
+        score_result = score_relationship(messages, llm_client, analysis_context)
     except Exception:
         logger.exception("scoring failed for analysisId=%s", analysisId)
         return _error_response(
