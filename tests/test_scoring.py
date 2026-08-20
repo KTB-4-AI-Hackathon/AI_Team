@@ -98,6 +98,31 @@ class _FakeLLMClient:
 
         return _Response()
 
+def _context_with_check_in(relationship_feeling_score: int, conversation_comfort_score: int) -> AnalysisContext:
+    return AnalysisContext.model_validate(
+        {
+            "user": {"userId": "0198c8a7-3000-7000-8000-000000000002", "displayName": "우", "timezone": "Asia/Seoul"},
+            "relationship": {
+                "relationshipId": "0198c8a7-3000-7000-8000-000000000003",
+                "name": "민지",
+                "relationshipType": "FRIEND",
+                "status": "ANALYZING",
+            },
+            "current": {
+                "conversationFileId": "0198c8a7-3000-7000-8000-000000000004",
+                "checkIn": {
+                    "checkInId": "0198c8a7-3000-7000-8000-000000000005",
+                    "weekStart": "2026-08-17",
+                    "inputAt": "2026-08-17T01:00:00Z",
+                    "answers": [
+                        {"questionCode": "RELATIONSHIP_FEELING", "score": relationship_feeling_score},
+                        {"questionCode": "CONVERSATION_COMFORT", "score": conversation_comfort_score},
+                    ],
+                },
+            },
+            "history": [],
+        }
+    )
 
 def test_score_relationship_orchestrates_prompt_build_and_response_parse():
     messages = [
@@ -118,7 +143,7 @@ def test_score_relationship_orchestrates_prompt_build_and_response_parse():
         )
     )
 
-    result = score_relationship(messages, fake_client, 2, 7)
+    result = score_relationship(messages, fake_client, _context_with_check_in(2, 7))
 
     assert result.scores["Satisfaction"] == 6
     assert result.risk_components == ["Commitment"]
@@ -141,7 +166,10 @@ def test_score_relationship_accepts_validated_analysis_context_without_changing_
                     "checkInId": "0198c8a7-3000-7000-8000-000000000005",
                     "weekStart": "2026-08-17",
                     "inputAt": "2026-08-17T01:00:00Z",
-                    "answers": [{"questionCode": "RELATIONSHIP_FEELING", "score": 6}],
+                    "answers": [
+                        {"questionCode": "RELATIONSHIP_FEELING", "score": 6},
+                        {"questionCode": "CONVERSATION_COMFORT", "score": 6},
+                    ],
                 },
             },
             "history": [],
